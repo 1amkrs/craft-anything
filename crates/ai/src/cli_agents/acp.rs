@@ -23,7 +23,7 @@ use std::time::Duration;
 
 /// Agents known to speak ACP, and the arguments that start them in that mode.
 pub const ACP_AGENTS: &[(&str, &[&str])] =
-    &[("gemini-cli", &["--experimental-acp"]), ("qwen-code", &["--experimental-acp"]), ("opencode", &["acp"]), ("goose", &["acp"])];
+    &[("antigravity", &["--experimental-acp"]), ("qwen-code", &["--experimental-acp"]), ("opencode", &["acp"]), ("goose", &["acp"])];
 
 /// The ACP version we speak.
 const PROTOCOL_VERSION: u64 = 1;

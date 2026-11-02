@@ -1,0 +1,8 @@
+{
+  "name": "Craft Anything",
+  "description": "See how any website, app or game works, then have AI build your own version with an open-source, clean-room inspection engine.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

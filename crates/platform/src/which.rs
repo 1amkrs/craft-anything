@@ -335,11 +335,11 @@ mod tests {
 
     const NPM_SHIM: &str = "@ECHO off\r\nGOTO start\r\n:find_dp0\r\nSET dp0=%~dp0\r\nEXIT /b\r\n:start\r\nSETLOCAL\r\nCALL :find_dp0\r\n\r\n\
         IF EXIST \"%dp0%\\node.exe\" (\r\n  SET \"_prog=%dp0%\\node.exe\"\r\n) ELSE (\r\n  SET \"_prog=node\"\r\n  SET PATHEXT=%PATHEXT:;.JS;=;%\r\n)\r\n\r\n\
-        endLocal & goto #_undefined_# 2>NUL || title %COMSPEC% & \"%_prog%\"  \"%dp0%\\node_modules\\@google\\gemini-cli\\dist\\index.js\" %*\r\n";
+        endLocal & goto #_undefined_# 2>NUL || title %COMSPEC% & \"%_prog%\"  \"%dp0%\\node_modules\\@google\\antigravity-cli\\dist\\index.js\" %*\r\n";
 
     #[test]
     fn npm_shims_name_their_script() {
-        assert_eq!(parse_npm_shim(NPM_SHIM), Some((Some("node".into()), r"node_modules\@google\gemini-cli\dist\index.js".into())));
+        assert_eq!(parse_npm_shim(NPM_SHIM), Some((Some("node".into()), r"node_modules\@google\antigravity-cli\dist\index.js".into())));
         let pnpm = "@SETLOCAL\n@IF EXIST \"%~dp0\\node.exe\" (\n  \"%~dp0\\node.exe\"  \"%~dp0\\..\\pnpm\\bin\\pnpm.cjs\" %*\n) ELSE (\n  node  \"%~dp0\\..\\pnpm\\bin\\pnpm.cjs\" %*\n)\n";
         assert_eq!(parse_npm_shim(pnpm), Some((Some("node".into()), r"..\pnpm\bin\pnpm.cjs".into())));
         let exe = "@ECHO off\nendLocal & \"%dp0%\\node_modules\\tool\\bin\\tool.exe\"   %*\n";
@@ -353,16 +353,16 @@ mod tests {
     #[test]
     fn npm_shims_start_their_script_with_node() {
         let dir = tempfile::tempdir().unwrap();
-        let shim = dir.path().join("gemini.cmd");
+        let shim = dir.path().join("antigravity.cmd");
         std::fs::write(&shim, NPM_SHIM).unwrap();
         // The shim's script missing: the batch file itself.
         assert_eq!(launch_target(shim.as_os_str()), (shim.clone().into_os_string(), Vec::new()));
-        let script = dir.path().join(r"node_modules\@google\gemini-cli\dist\index.js");
+        let script = dir.path().join(r"node_modules\@google\antigravity-cli\dist\index.js");
         std::fs::create_dir_all(script.parent().unwrap()).unwrap();
         std::fs::write(&script, "").unwrap();
         std::fs::write(dir.path().join("node.exe"), "").unwrap();
         // Found without its extension too, as a bare name is.
-        assert_eq!(launch_target(dir.path().join("gemini").as_os_str()), (dir.path().join("node.exe").into_os_string(), vec![script.into_os_string()]));
+        assert_eq!(launch_target(dir.path().join("antigravity").as_os_str()), (dir.path().join("node.exe").into_os_string(), vec![script.into_os_string()]));
         // An .exe is left to the system's own lookup.
         assert_eq!(launch_target(dir.path().join("node").as_os_str()), (dir.path().join("node").into_os_string(), Vec::new()));
     }
@@ -375,12 +375,12 @@ mod tests {
             return;
         }
         let dir = tempfile::tempdir().unwrap();
-        let script = dir.path().join(r"node_modules\@google\gemini-cli\dist\index.js");
+        let script = dir.path().join(r"node_modules\@google\antigravity-cli\dist\index.js");
         std::fs::create_dir_all(script.parent().unwrap()).unwrap();
         std::fs::write(&script, "process.stdout.write(JSON.stringify(process.argv.slice(2)))").unwrap();
-        std::fs::write(dir.path().join("gemini.cmd"), NPM_SHIM).unwrap();
+        std::fs::write(dir.path().join("antigravity.cmd"), NPM_SHIM).unwrap();
         let prompt = "Make a game.\nIt says \"hi\" & 100% works | <ok>";
-        let out = crate::Process::new(dir.path().join("gemini")).args(["-p", prompt]).run_checked().unwrap();
+        let out = crate::Process::new(dir.path().join("antigravity")).args(["-p", prompt]).run_checked().unwrap();
         assert_eq!(serde_json::from_str::<Vec<String>>(&out.stdout_text()).unwrap(), ["-p", prompt]);
     }
 

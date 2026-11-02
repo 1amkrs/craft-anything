@@ -264,19 +264,6 @@ pub fn clients(host: &Host) -> Vec<Client> {
     // Cursor
     add("cursor", "Cursor", h.join(".cursor").join("mcp.json"), vec![h.join(".cursor")], Format::Jsonc, vec!["mcpServers"], Shape::Plain, None);
 
-    // Gemini CLI
-    let gem_home = host.var("GEMINI_CLI_HOME").unwrap_or_else(|| h.clone());
-    add(
-        "gemini_cli",
-        "Gemini CLI",
-        gem_home.join(".gemini").join("settings.json"),
-        vec![gem_home.join(".gemini")],
-        Format::Jsonc,
-        vec!["mcpServers"],
-        Shape::Plain,
-        Some(gem_home.join(".agents").join("skills")),
-    );
-
     // Windsurf
     let ws = h.join(".codeium").join("windsurf");
     add("windsurf", "Windsurf", ws.join("mcp_config.json"), vec![ws.clone()], Format::Jsonc, vec!["mcpServers"], Shape::Plain, None);
@@ -319,8 +306,8 @@ pub fn clients(host: &Host) -> Vec<Client> {
 
     // Antigravity (agy)
     let ag_home = host.var("ANTIGRAVITY_HOME").unwrap_or_else(|| h.clone());
-    let ag = ag_home.join(".gemini").join("config");
-    let ag_cli = ag_home.join(".gemini").join("antigravity-cli");
+    let ag = ag_home.join(".antigravity").join("config");
+    let ag_cli = ag_home.join(".antigravity").join("antigravity-cli");
     add(
         "antigravity",
         "Antigravity",

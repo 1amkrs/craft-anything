@@ -96,9 +96,9 @@ impl Default for AgentAdapters {
 }
 
 impl AgentAdapters {
-    /// Claude Code, Codex, Gemini CLI, OpenCode and Antigravity.
+    /// Claude Code, Codex, Antigravity and OpenCode.
     pub fn built_in() -> AgentAdapters {
-        AgentAdapters { adapters: vec![Arc::new(ClaudeCode), Arc::new(Codex), Arc::new(GeminiCli), Arc::new(OpenCode), Arc::new(Antigravity)] }
+        AgentAdapters { adapters: vec![Arc::new(ClaudeCode), Arc::new(Codex), Arc::new(Antigravity), Arc::new(OpenCode)] }
     }
 
     /// Add an adapter; it takes over any ids it shares with one already registered.
@@ -377,54 +377,3 @@ impl AgentAdapter for Codex {
     }
 }
 
-/// Gemini CLI (`--output-format stream-json`). Flags are checked against `gemini --help`.
-pub struct GeminiCli;
-
-impl AgentAdapter for GeminiCli {
-    fn ids(&self) -> &'static [&'static str] {
-        &["gemini-cli", "gemini"]
-    }
-
-    fn args(&self, cx: &ArgsCx) -> Vec<String> {
-        let mut a = cx.options.args.clone();
-        if let Some(m) = &cx.options.cli_model {
-            a.extend(["-m".into(), m.clone()]);
-        }
-        a.extend(["--output-format".into(), "stream-json".into(), "-p".into(), format!("{}{}", cx.preamble, cx.prompt)]);
-        a
-    }
-
-    fn required_flags(&self) -> (&'static [&'static str], &'static [&'static str]) {
-        (&["--help"], &["--output-format", "stream-json"])
-    }
-
-    fn parse(&self, p: &mut StreamParser, v: &Value) -> Vec<AgentEvent> {
-        let mut out = Vec::new();
-        let s = |k: &str| v.get(k).and_then(Value::as_str).unwrap_or_default().to_string();
-        match s("type").as_str() {
-            "init" => p.session_id = v.get("session_id").and_then(Value::as_str).map(str::to_string),
-            "message" if s("role") == "assistant" => out.push(AgentEvent::TextDelta { text: s("content") }),
-            "tool_use" => {
-                let id = s("tool_id");
-                let name = s("tool_name");
-                out.push(p.started(&id, &name, v.get("parameters").cloned().unwrap_or(Value::Null)));
-            }
-            "tool_result" => {
-                let id = s("tool_id");
-                let ok = s("status") != "error";
-                let text = v.get("output").map(content_text).unwrap_or_default();
-                out.push(p.finished(&id, ok, &text));
-            }
-            "error" => out.push(AgentEvent::Error { message: format!("Gemini CLI: {}", s("message")), remediation: None, log: None }),
-            "result" => {
-                p.saw_result = true;
-                if let Some(st) = v.get("stats") {
-                    p.input_tokens = st.get("input_tokens").and_then(Value::as_u64).unwrap_or(0);
-                    p.output_tokens = st.get("output_tokens").and_then(Value::as_u64).unwrap_or(0);
-                }
-            }
-            _ => {}
-        }
-        out
-    }
-}

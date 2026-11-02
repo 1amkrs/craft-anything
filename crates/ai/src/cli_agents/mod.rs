@@ -36,7 +36,6 @@ pub const MCP_NAME: &str = "craft-anything";
 pub const KNOWN: &[(&str, &str, &str)] = &[
     ("claude-code", "claude", "Claude Code"),
     ("codex", "codex", "Codex"),
-    ("gemini-cli", "gemini", "Gemini CLI"),
     ("antigravity", "agy", "Antigravity"),
     ("opencode", "opencode", "OpenCode"),
     ("hermes", "hermes", "Hermes Agent"),
@@ -735,7 +734,7 @@ mod tests {
     }
 
     #[test]
-    fn codex_and_gemini_args() {
+    fn codex_and_antigravity_args() {
         let a = build_args(adapter_for("codex").as_ref(), &BackendOptions::default(), "q", "P:", &mcp(), None, Access::Analyse);
         assert_eq!(&a[..2], &["exec".to_string(), "--json".to_string()]);
         // #69: project folders aren't git repositories; the flag comes once, also when the
@@ -747,7 +746,7 @@ mod tests {
         assert!(a.contains(&"mcp_servers.craft-anything.command=\"/opt/ca/craft-anything-cli\"".to_string()));
         assert!(a.contains(&"mcp_servers.craft-anything.args=[\"mcp\", \"--project\", \"/p/x.cany\"]".to_string()));
         assert_eq!(a.last().unwrap(), "P:q");
-        let g = build_args(adapter_for("gemini-cli").as_ref(), &BackendOptions::default(), "q", "", &mcp(), None, Access::Analyse);
+        let g = build_args(adapter_for("antigravity").as_ref(), &BackendOptions::default(), "q", "", &mcp(), None, Access::Analyse);
         assert!(g.windows(2).any(|w| w[0] == "--output-format" && w[1] == "stream-json"));
         let o = BackendOptions { args: vec!["run".into()], ..Default::default() };
         assert_eq!(build_args(adapter_for("aider").as_ref(), &o, "q", "", &mcp(), None, Access::Analyse), vec!["run".to_string(), "q".to_string()]);
@@ -902,7 +901,7 @@ mod tests {
         assert!(!has(&clean, "--allowedTools") && !has(&clean, "--fork-session") && has(&clean, "--no-session-persistence"));
         // Only agents that can be held to reading are asked.
         assert!(adapter_for("claude-code").answers_questions());
-        assert!(!adapter_for("codex").answers_questions() && !adapter_for("gemini-cli").answers_questions() && !adapter_for("aider").answers_questions());
+        assert!(!adapter_for("codex").answers_questions() && !adapter_for("antigravity").answers_questions() && !adapter_for("aider").answers_questions());
     }
 
     #[test]
@@ -957,7 +956,7 @@ mod tests {
     }
 
     #[test]
-    fn parses_codex_and_gemini_streams() {
+    fn parses_codex_and_antigravity_streams() {
         let mut p = StreamParser::new(adapter_for("codex"));
         let mut ev = Vec::new();
         for l in [
@@ -973,11 +972,11 @@ mod tests {
         assert!(matches!(&ev[1], AgentEvent::ToolFinished { ok: true, .. }));
         assert!(matches!(&ev[2], AgentEvent::TextDelta { text } if text.starts_with("It lists")));
         assert!(p.saw_result && p.output_tokens == 4);
-        let mut g = StreamParser::new(adapter_for("gemini-cli"));
+        let mut g = StreamParser::new(adapter_for("antigravity"));
         let ev: Vec<_> = [
-            json!({"type":"message","role":"assistant","content":"Hi","delta":true}),
-            json!({"type":"tool_use","tool_name":"craft-anything__core_targets_list","tool_id":"x","parameters":{}}),
-            json!({"type":"tool_result","tool_id":"x","status":"error","output":"boom"}),
+            json!({"event":"step_update","step_update":{"step_type":"agent_response","text_delta":"Hi"}}),
+            json!({"event":"step_update","step_update":{"step_type":"tool","step_index":1,"state":"ACTIVE","tool_name":"craft-anything__core_targets_list","tool_info":{"name":"core_targets_list","parameters":{}}}}),
+            json!({"event":"step_update","step_update":{"step_type":"tool","step_index":1,"state":"ERROR","tool_name":"craft-anything__core_targets_list","tool_info":{"name":"core_targets_list","error":"boom"}}}),
         ]
         .iter()
         .flat_map(|l| g.line(&l.to_string()))
@@ -1081,6 +1080,6 @@ mod tests {
         assert!(reg.for_agent("claude").resumes() && !reg.for_agent("codex").resumes() && reg.for_agent("antigravity").resumes());
         // Registering an adapter for an existing id replaces that one.
         reg.register(Arc::new(EchoAgent));
-        assert_eq!(format!("{reg:?}"), r#"["claude-code", "codex", "gemini-cli", "opencode", "antigravity", "echo-agent"]"#);
+        assert_eq!(format!("{reg:?}"), r#"["claude-code", "codex", "antigravity", "opencode", "echo-agent"]"#);
     }
 }

@@ -67,7 +67,7 @@ impl BackendKind {
             BackendKind::Openai => &[openai::OPENAI_DEFAULT_MODEL],
             BackendKind::Openrouter => openai::OPENROUTER_MODELS,
             BackendKind::OpenaiCompatible => &[],
-            BackendKind::AgentCli => &["claude-code", "codex", "gemini-cli", "opencode", "antigravity", "hermes"],
+            BackendKind::AgentCli => &["claude-code", "codex", "antigravity", "opencode", "hermes"],
         }
     }
 
@@ -82,7 +82,7 @@ pub struct BackendConfig {
     /// User-chosen name, unique: "Claude", "Local Llama", "Codex on studio-mac".
     pub name: String,
     pub kind: BackendKind,
-    /// Model id (API backends) or agent id (`claude-code`, `codex`, `gemini-cli`, `antigravity`, `hermes`, `opencode`…).
+    /// Model id (API backends) or agent id (`claude-code`, `codex`, `antigravity`, `hermes`, `opencode`…).
     pub model: String,
     /// Base URL for API backends (defaults per kind).
     #[serde(default)]

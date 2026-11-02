@@ -302,7 +302,7 @@ mod tests {
         assert_eq!(one("model = \"sonnet\"\ncommand = 'C:\\Users\\u\\.bun\\bin\\opencode.exe'").0, "opencode", "a full path names it too");
         // Left as they are: a model that names the agent, a cli_model already set, an unknown program.
         assert_eq!(one("model = \"opencode\"\ncommand = \"opencode\""), ("opencode".into(), None));
-        assert_eq!(one("model = \"gemini\"\ncommand = \"gemini\""), ("gemini".into(), None));
+        assert_eq!(one("model = \"antigravity\"\ncommand = \"agy\""), ("antigravity".into(), None));
         assert_eq!(one("model = \"x/y\"\ncommand = \"opencode\"\ncli_model = \"z\""), ("opencode".into(), Some("z".into())));
         assert_eq!(one("model = \"my-agent\"\ncommand = \"my-agent-cli\""), ("my-agent".into(), None));
         assert_eq!(one("model = \"claude-code\""), ("claude-code".into(), None));
